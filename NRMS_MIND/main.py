@@ -8,8 +8,8 @@ from evaluation import ndcg_score, mrr_score
 from torch import optim
 from sklearn.metrics import roc_auc_score
 
-print("System version: {}".format(sys.version))
-print("Torch version: {}".format(torch.__version__))
+# print("System version: {}".format(sys.version))
+# print("Torch version: {}".format(torch.__version__))
 MIND_type = 'demo'
 
 def load_dict(file_path):
@@ -118,7 +118,10 @@ def main():
                 ranks_str = ','.join([str(r) for r in list(ranks)])
                 # f.write(f'{impr_idx_j.item()} [{ranks_str}]\n')
                 f.write(f'[{ranks_str}]\n')
-                vld_gt_j = np.array(vld_label_j)
+                lst = []
+                for i in vld_label_j:
+                    lst.append(i.item())
+                vld_gt_j = np.array(lst)
 
                 for metric, _ in metrics.items():
                     if metric == 'auc':
@@ -129,7 +132,7 @@ def main():
                         metrics[metric] += score
                     elif metric.startswith('ndcg'):  # format like: ndcg@5;10
                         k = int(metric.split('@')[1])
-                        score = ndcg_score(vld_gt_j, scores_j, k=k)
+                        score = ndcg_score(vld_gt_j, scores_j, k=k).item()
                         metrics[metric] += score
 
         for metric, _ in metrics.items():
@@ -139,7 +142,7 @@ def main():
 
         result = f'Epoch {epoch:3d} [{inter_time - start_time:5.2f} / {end_time - inter_time:5.2f} Sec]'f', TrnLoss:{epoch_loss:.4f}, '
         for enum, (metric, _) in enumerate(metrics.items(), start=1):
-            result += f'{metric}:{metrics[metric]}'
+            result += f'{metric}:{metrics[metric]:.4f}'
             if enum < len(metrics):
                 result += ', '
         print(result)
