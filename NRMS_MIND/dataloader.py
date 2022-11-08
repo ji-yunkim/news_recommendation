@@ -91,6 +91,7 @@ class DatasetTrn(BaseDataset):
         self.pos_unfold = []
         self.behaviors_file = behaviors_file
         self.neg_unfold = []
+        self.hparams = hparams
         self.npratio = hparams['npratio']
 
         # TODO : history, positive, negative로 나눠서 저장
@@ -108,14 +109,6 @@ class DatasetTrn(BaseDataset):
                 self.uidxs_unfold.append(self.uindexes[line])
 
     def __getitem__(self, idx):
-        # his = self.histories_unfold[idx]
-        # his = torch.tensor(his)
-        #
-        # neg = torch.tensor(newsample(self.neg_unfold[idx], self.npratio))
-        # neg = torch.tensor(neg)
-        #
-        # pos = torch.tensor(self.pos_unfold[idx])
-        # pos = torch.tensor(pos)
 
         his = self.histories_unfold[idx]
         lst = []
@@ -140,3 +133,46 @@ class DatasetTrn(BaseDataset):
     def __len__(self):
         return self.line_num
 
+class DatasetTest(BaseDataset):
+    labels = None
+    def __init__(self, news_file, behaviors_file, wordDict, userDict, embedding, hparams, label_known=True):
+
+        self.label_known = label_known
+        super().__init__(news_file, behaviors_file, wordDict, userDict, embedding, hparams)
+
+        self.histories_unfold = []
+        self.imprs_unfold = []
+
+        for i in range(len(self.histories)):
+            self.histories_unfold.append(self.histories[i])
+            self.imprs_unfold.append(self.imprs[i])
+
+    def __getitem__(self, idx):
+        # impr_idx
+        # impr_idx = idx
+
+        # his
+        his = self.histories_unfold[idx]
+        lst1 = []
+        for i in his:
+            lst1.append(self.news_title_index[i])
+        lst1 = np.array(lst1)
+        his = torch.tensor(lst1)
+
+        # impr
+        lst2 = []
+        impr = self.imprs_unfold[idx]
+        for i in impr:
+            a = self.news_title_index[i]
+            lst2.append(a)
+        lst2 = np.array(lst2)
+        impr = torch.tensor(lst2)
+
+        # label
+        label = self.labels[idx]
+
+        # return impr_idx, his, impr, label
+        return his, impr, label
+
+    def __len__(self):
+        return len(self.uindexes)
